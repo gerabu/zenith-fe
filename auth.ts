@@ -14,10 +14,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile }) {
       if (account) {
         // First sign-in: capture Google ID token (not the opaque access token)
         token.idToken = account.id_token;
+
+        // Persist identity so the calendar sidebar can render it without
+        // another round-trip.
+        if (profile) {
+          token.name = profile.name ?? token.name;
+          token.email = profile.email ?? token.email;
+        }
 
         await api.get("/auth/sync", {
           headers: { Authorization: `Bearer ${account.id_token}` },
@@ -28,6 +35,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       session.idToken = token.idToken as string;
+      session.user.name = token.name ?? session.user.name;
+      session.user.email = token.email ?? session.user.email;
       return session;
     },
 

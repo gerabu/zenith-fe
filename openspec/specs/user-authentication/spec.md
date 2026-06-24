@@ -1,3 +1,9 @@
+# user-authentication Specification
+
+## Purpose
+
+Authenticate users via Google (NextAuth/Auth.js v5), capture the Google-issued ID token for backend authorization, sync the user with the backend on sign-in, and expose the session (token plus user identity) to the rest of the app.
+## Requirements
 ### Requirement: Google sign-in via NextAuth
 
 The system SHALL allow a user to sign in using their Google account through NextAuth (Auth.js v5), with Google configured as the only authentication provider.
@@ -42,12 +48,17 @@ The system SHALL call the backend `GET /auth/sync` endpoint during the NextAuth 
 
 ### Requirement: Expose the ID token on the session
 
-The system SHALL expose the Google ID token on the session via the NextAuth `session` callback so that authenticated backend requests can later inject it as a Bearer token.
+The system SHALL expose the Google ID token on the session via the NextAuth `session` callback so that authenticated backend requests can later inject it as a Bearer token. The session SHALL additionally expose the authenticated user's name and email so the UI can display the user's identity.
 
 #### Scenario: Token available on session
 
 - **WHEN** the NextAuth `session` callback runs for an authenticated user
 - **THEN** the returned session includes the Google ID token captured during the `jwt` callback
+
+#### Scenario: User identity available on session
+
+- **WHEN** the NextAuth `session` callback runs for an authenticated user
+- **THEN** the returned session exposes the user's name and email (on `session.user`) so the calendar sidebar can render them
 
 ### Requirement: Backend axios instance
 
@@ -57,3 +68,4 @@ The system SHALL provide a single typed axios instance targeting the backend API
 
 - **WHEN** application code needs to call the backend API
 - **THEN** it imports the shared axios instance, which is configured with the backend base URL from environment configuration
+
