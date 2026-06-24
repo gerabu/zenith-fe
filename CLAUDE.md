@@ -58,6 +58,10 @@ A booking must be rejected if it overlaps with:
 
 The system must check Google Calendar **before** confirming a booking, not asynchronously after.
 
+### HTTP requests
+
+All backend HTTP calls — server (RSC, server actions) and client — MUST go through the shared axios instance at `lib/api.ts`. Do **not** use the native `fetch` API, `axios.create()`, or bare `axios.get()`/`axios.post()` for backend calls. The instance attaches the Bearer ID token (from the session) via its request interceptor; calling `fetch` directly bypasses auth and the shared config.
+
 ### shadcn components
 
 Add components with:
