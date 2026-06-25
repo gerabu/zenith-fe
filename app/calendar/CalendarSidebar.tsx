@@ -15,9 +15,12 @@ function initials(name: string | null | undefined, email: string): string {
 export function CalendarSidebar({
   name,
   email,
+  timeZone,
 }: {
   name: string | null | undefined;
   email: string;
+  /** Viewer's resolved IANA zone; absent until it is known on first load. */
+  timeZone?: string | null;
 }) {
   return (
     <Sidebar>
@@ -62,7 +65,8 @@ export function CalendarSidebar({
 
       <SidebarFooter className="p-5">
         <p className="text-[0.625rem] leading-relaxed text-muted-foreground">
-          Times shown in UTC. Pick a slot to book — coming soon.
+          {timeZone ? `Times shown in ${timeZone}. ` : ""}Pick a slot to book —
+          coming soon.
         </p>
       </SidebarFooter>
     </Sidebar>
