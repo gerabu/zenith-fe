@@ -4,19 +4,28 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { addWeeks, formatDateParam, startOfWeekMonday } from "@/lib/week";
+import { useLocalToday } from "@/hooks/use-local-today";
 import { useCalendarWeek } from "./CalendarWeekContext";
 
 export function WeekNav() {
   const router = useRouter();
   const { weekStartISO, rangeLabel } = useCalendarWeek();
+  const { todayISO } = useLocalToday();
 
   const goToWeek = (monday: Date) => {
     router.push(`/calendar?week=${formatDateParam(monday)}`);
   };
 
   const current = new Date(`${weekStartISO}T00:00:00.000Z`);
-  const thisWeek = startOfWeekMonday(new Date());
-  const isCurrentWeek = formatDateParam(thisWeek) === weekStartISO;
+  // The current week is keyed off the viewer's local date (UTC-calendar-date
+  // space, matching the day columns). Before the client mounts `todayISO` is
+  // null, so the "Today" control stays enabled until the local date resolves.
+  const thisWeek = todayISO
+    ? startOfWeekMonday(new Date(`${todayISO}T00:00:00.000Z`))
+    : null;
+  const isCurrentWeek = thisWeek
+    ? formatDateParam(thisWeek) === weekStartISO
+    : false;
 
   return (
     <div className="flex items-center gap-3">
@@ -47,8 +56,8 @@ export function WeekNav() {
         variant="outline"
         size="sm"
         className="ml-1"
-        disabled={isCurrentWeek}
-        onClick={() => goToWeek(thisWeek)}
+        disabled={isCurrentWeek || !thisWeek}
+        onClick={() => thisWeek && goToWeek(thisWeek)}
       >
         Today
       </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useLocalToday } from "@/hooks/use-local-today";
 import { useCalendarWeek } from "./CalendarWeekContext";
 import type { CalendarDayVM, CalendarEventVM } from "./types";
 
@@ -11,7 +12,9 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const ROW_CLASS = "h-14"; // 3.5rem
 
 export function WeekGrid() {
-  const { days, nowMinutes } = useCalendarWeek();
+  const { days } = useCalendarWeek();
+  // "Today" and "now" are viewer-local; the week structure is server-rendered.
+  const { todayISO, nowMinutes } = useLocalToday();
 
   return (
     <div className="flex-1 overflow-auto">
@@ -19,7 +22,12 @@ export function WeekGrid() {
         <TimeGutter />
         <div className="grid flex-1 grid-cols-7">
           {days.map((day) => (
-            <DayColumn key={day.dateISO} day={day} nowMinutes={nowMinutes} />
+            <DayColumn
+              key={day.dateISO}
+              day={day}
+              isToday={day.dateISO === todayISO}
+              nowMinutes={nowMinutes}
+            />
           ))}
         </div>
       </div>
@@ -49,12 +57,14 @@ function TimeGutter() {
 
 function DayColumn({
   day,
+  isToday,
   nowMinutes,
 }: {
   day: CalendarDayVM;
+  isToday: boolean;
   nowMinutes: number | null;
 }) {
-  const showNow = day.isToday && nowMinutes !== null;
+  const showNow = isToday && nowMinutes !== null;
 
   return (
     <div className="relative border-l border-border first:border-l-0">
@@ -62,13 +72,13 @@ function DayColumn({
       <header
         className={cn(
           "sticky top-0 z-10 flex h-16 flex-col items-center justify-center gap-0.5 border-b bg-background",
-          day.isToday ? "border-primary/60" : "border-border"
+          isToday ? "border-primary/60" : "border-border"
         )}
       >
         <span
           className={cn(
             "text-[0.625rem] font-semibold uppercase tracking-[0.2em]",
-            day.isToday ? "text-primary" : "text-muted-foreground"
+            isToday ? "text-primary" : "text-muted-foreground"
           )}
         >
           {day.weekdayLabel}
@@ -76,7 +86,7 @@ function DayColumn({
         <span
           className={cn(
             "flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-sm font-semibold tabular-nums",
-            day.isToday
+            isToday
               ? "bg-primary text-primary-foreground"
               : "text-foreground"
           )}
@@ -86,7 +96,7 @@ function DayColumn({
       </header>
 
       {/* Hour grid body */}
-      <div className={cn("relative", day.isToday && "bg-primary/[0.03]")}>
+      <div className={cn("relative", isToday && "bg-primary/[0.03]")}>
         {HOURS.map((h) => (
           <div
             key={h}

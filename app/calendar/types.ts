@@ -1,6 +1,8 @@
 // Serializable view models handed from the RSC page to client components.
-// All time fields are derived on the server (UTC) so there is no client-side
-// date math and therefore no hydration drift.
+// The week structure and event placement are derived on the server (UTC) so
+// there is no hydration drift. "Today" and the current-time marker are not
+// here: they are viewer-local and resolved on the client (see
+// hooks/use-local-today.ts).
 
 export type RenderableStatus = "booked" | "external";
 
@@ -20,7 +22,6 @@ export interface CalendarDayVM {
   weekdayLabel: string;
   /** e.g. "24". */
   dayNumber: string;
-  isToday: boolean;
   /** Non-null when this day's availability failed to load. */
   error: string | null;
   events: CalendarEventVM[];
@@ -32,6 +33,4 @@ export interface CalendarWeekData {
   /** e.g. "Jun 23 – 29, 2026". */
   rangeLabel: string;
   days: CalendarDayVM[];
-  /** Minutes since UTC midnight for the live marker; null if today isn't shown. */
-  nowMinutes: number | null;
 }

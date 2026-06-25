@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { ConnectCalendarButton } from "@/components/connect-calendar-button";
 import { SlotGrid } from "../SlotGrid";
 
 export default async function ConnectCalendarPage() {
@@ -33,19 +33,12 @@ export default async function ConnectCalendarPage() {
           never double-book again.
         </p>
 
-        {/* Connect button — coming in next slice */}
+        {/* Connect */}
         <div className="mt-6">
-          <Button
-            disabled
-            variant="secondary"
-            size="lg"
-            className="relative w-full"
-          >
-            Connect Google Calendar
-            <span className="absolute -right-2 -top-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-primary-foreground">
-              Soon
-            </span>
-          </Button>
+          <ConnectCalendarButton
+            redirectTo="/calendar"
+            className="w-full bg-foreground text-background hover:bg-foreground/90"
+          />
         </div>
 
         <div className="my-5 h-px w-full bg-border" />

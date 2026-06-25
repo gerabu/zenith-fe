@@ -10,13 +10,10 @@ import { formatDateParam, parseWeekParam, weekDays } from "@/lib/week";
 import { redirect } from "next/navigation";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { CalendarWeekProvider } from "./CalendarWeekContext";
+import { ConnectCalendarAlert } from "./ConnectCalendarAlert";
 import { WeekGrid } from "./WeekGrid";
 import { WeekNav } from "./WeekNav";
-import type {
-  CalendarDayVM,
-  CalendarEventVM,
-  CalendarWeekData,
-} from "./types";
+import type { CalendarDayVM, CalendarEventVM, CalendarWeekData } from "./types";
 
 const weekdayFmt = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -65,8 +62,6 @@ export default async function CalendarPage({
 
   const availability = await getWeekAvailability(weekStart);
 
-  const todayISO = new Date().toISOString().slice(0, 10);
-
   const dayVMs: CalendarDayVM[] = days.map((date, i) => {
     const dateISO = formatDateParam(date);
     const day = availability[i];
@@ -74,23 +69,18 @@ export default async function CalendarPage({
       dateISO,
       weekdayLabel: weekdayFmt.format(date),
       dayNumber: String(date.getUTCDate()),
-      isToday: dateISO === todayISO,
       error: day.error,
       // Only booked + external are rendered; available slots are dropped.
-      events: day.events
-        .filter((e) => e.status !== "available")
-        .map(toEventVM),
+      events: day.events.filter((e) => e.status !== "available").map(toEventVM),
     };
   });
 
-  const showsToday = dayVMs.some((d) => d.isToday);
-  const now = new Date();
-
+  // "Today" and the live marker are viewer-local — resolved on the client
+  // (hooks/use-local-today.ts), not here in UTC.
   const data: CalendarWeekData = {
     weekStartISO: formatDateParam(weekStart),
     rangeLabel: rangeLabel(days),
     days: dayVMs,
-    nowMinutes: showsToday ? now.getUTCHours() * 60 + now.getUTCMinutes() : null,
   };
 
   return (
@@ -108,6 +98,12 @@ export default async function CalendarPage({
               <WeekNav />
             </div>
           </header>
+
+          {!session.calendarConnected && (
+            <div className="shrink-0 px-4 pt-3">
+              <ConnectCalendarAlert />
+            </div>
+          )}
 
           <WeekGrid />
         </CalendarWeekProvider>

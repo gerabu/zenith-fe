@@ -1,3 +1,9 @@
+# onboarding Specification
+
+## Purpose
+
+Onboard new users from an unauthenticated entry point through Google sign-in to the protected `/calendar` route, including a connect-calendar step that may be deferred.
+## Requirements
 ### Requirement: Sign-in entry point
 
 The system SHALL present an onboarding sign-in screen to unauthenticated users with a clear call to action to sign in with Google.
@@ -9,7 +15,7 @@ The system SHALL present an onboarding sign-in screen to unauthenticated users w
 
 ### Requirement: Connect-calendar step with deferral
 
-After successful sign-in the system SHALL guide the user to a connect-calendar step whose only available action in this slice is to defer (e.g. "I'll do it later").
+After successful sign-in the system SHALL guide the user to a connect-calendar step that offers two actions: an active "Connect Google Calendar" action that starts the read-only calendar authorization, and a deferral action (e.g. "I'll do it later") that completes onboarding without connecting.
 
 #### Scenario: User reaches the connect-calendar step
 
@@ -21,10 +27,10 @@ After successful sign-in the system SHALL guide the user to a connect-calendar s
 - **WHEN** the user chooses "I'll do it later" on the connect-calendar step
 - **THEN** the system completes onboarding and redirects the user to the protected `/calendar` route without connecting any calendar
 
-#### Scenario: No active connect action in this slice
+#### Scenario: User connects the calendar from onboarding
 
-- **WHEN** the user views the connect-calendar step
-- **THEN** the only offered action is to defer; actually connecting Google Calendar is not available in this slice
+- **WHEN** the user activates the "Connect Google Calendar" action on the connect-calendar step
+- **THEN** the system starts the incremental Google authorization requesting read-only calendar access
 
 ### Requirement: Protected `/calendar` route
 
@@ -39,3 +45,4 @@ The system SHALL provide a `/calendar` route that is accessible only to authenti
 
 - **WHEN** an unauthenticated user attempts to navigate directly to `/calendar`
 - **THEN** the system denies access and redirects them to the sign-in entry point
+
