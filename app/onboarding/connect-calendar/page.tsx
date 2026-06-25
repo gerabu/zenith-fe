@@ -3,11 +3,16 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ConnectCalendarButton } from "@/components/connect-calendar-button";
+import { getCalendarConnected } from "@/lib/calendar-connection";
 import { SlotGrid } from "../SlotGrid";
 
 export default async function ConnectCalendarPage() {
   const session = await auth();
   if (!session) redirect("/onboarding");
+
+  // Already connected? Skip the prompt — the backend is the source of truth.
+  // A failed read resolves to false, so the connect step still renders.
+  if (await getCalendarConnected()) redirect("/calendar");
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4">

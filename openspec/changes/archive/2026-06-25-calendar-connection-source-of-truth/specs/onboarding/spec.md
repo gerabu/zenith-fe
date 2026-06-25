@@ -1,17 +1,4 @@
-# onboarding Specification
-
-## Purpose
-
-Onboard new users from an unauthenticated entry point through Google sign-in to the protected `/calendar` route, including a connect-calendar step that may be deferred.
-## Requirements
-### Requirement: Sign-in entry point
-
-The system SHALL present an onboarding sign-in screen to unauthenticated users with a clear call to action to sign in with Google.
-
-#### Scenario: Unauthenticated user sees sign-in
-
-- **WHEN** an unauthenticated user opens the onboarding entry point
-- **THEN** the system shows a welcome/sign-in screen offering "Sign in with Google"
+## MODIFIED Requirements
 
 ### Requirement: Connect-calendar step with deferral
 
@@ -41,18 +28,3 @@ After successful sign-in the system SHALL guide the user to a connect-calendar s
 
 - **WHEN** the connection-status read fails while rendering the connect-calendar step
 - **THEN** the system renders the connect prompt (assuming disconnected) rather than redirecting
-
-### Requirement: Protected `/calendar` route
-
-The system SHALL provide a `/calendar` route that is accessible only to authenticated users. In this slice the page is intentionally empty (placeholder). After a user successfully signs in and completes onboarding, the system SHALL land them on `/calendar`.
-
-#### Scenario: Authenticated user lands on /calendar after sign-in
-
-- **WHEN** a user finishes the onboarding flow (including deferring the calendar step)
-- **THEN** the system redirects them to `/calendar` and renders the (empty) calendar page
-
-#### Scenario: Unauthenticated user is blocked from /calendar
-
-- **WHEN** an unauthenticated user attempts to navigate directly to `/calendar`
-- **THEN** the system denies access and redirects them to the sign-in entry point
-

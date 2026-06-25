@@ -31,13 +31,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // would recurse.
         const authHeader = { Authorization: `Bearer ${account.id_token}` };
 
-        // Sync the user and learn whether their calendar is already linked, so
-        // the flag survives across sessions/devices.
-        const sync = await api.get<{ calendarConnected?: boolean }>(
-          "/auth/sync",
-          { headers: authHeader }
-        );
-        token.calendarConnected = sync.data?.calendarConnected ?? false;
+        // Sync the user on sign-in (idempotent). Connection state is read per
+        // render from the backend, not cached here.
+        await api.get("/auth/sync", { headers: authHeader });
 
         // Incremental authorization: when this sign-in granted read-only
         // calendar access, hand the calendar tokens to the backend to persist.
@@ -54,9 +50,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
             { headers: authHeader }
           );
-          // Only on a successful PATCH — a thrown error leaves the flag false
-          // so the connect prompt stays visible for a retry.
-          token.calendarConnected = true;
         }
       }
       return token;
@@ -66,8 +59,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.idToken = token.idToken as string;
       session.user.name = token.name ?? session.user.name;
       session.user.email = token.email ?? session.user.email;
-      session.calendarConnected =
-        (token.calendarConnected as boolean | undefined) ?? false;
       return session;
     },
 

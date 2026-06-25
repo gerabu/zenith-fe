@@ -5,6 +5,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { getWeekAvailability } from "@/lib/availability";
+import { getCalendarConnected } from "@/lib/calendar-connection";
 import { localHour, localTimeLabel, resolveTimeZone, TZ_COOKIE } from "@/lib/timezone";
 import type { AvailabilityEvent } from "@/lib/types";
 import { formatDateParam, parseWeekParam, weekDays } from "@/lib/week";
@@ -71,7 +72,12 @@ export default async function CalendarPage({
   const weekStart = parseWeekParam(week, tz);
   const days = weekDays(weekStart);
 
-  const availability = await getWeekAvailability(weekStart, tz);
+  // Connection state is read per render from the backend (source of truth),
+  // not from a session flag — fetched alongside availability.
+  const [availability, calendarConnected] = await Promise.all([
+    getWeekAvailability(weekStart, tz),
+    getCalendarConnected(),
+  ]);
 
   const dayVMs: CalendarDayVM[] = days.map((date, i) => {
     const dateISO = formatDateParam(date);
@@ -118,7 +124,7 @@ export default async function CalendarPage({
             </div>
           </header>
 
-          {!session.calendarConnected && (
+          {!calendarConnected && (
             <div className="shrink-0 px-4 pt-3">
               <ConnectCalendarAlert />
             </div>
