@@ -1,9 +1,19 @@
+import { LogOut } from "lucide-react";
+
+import { signOut } from "@/auth";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { ThemeSwitch } from "./ThemeSwitch";
+
+async function signOutAction() {
+  "use server";
+  await signOut({ redirectTo: "/onboarding" });
+}
 
 function initials(name: string | null | undefined, email: string): string {
   const source = name?.trim() || email;
@@ -37,12 +47,23 @@ export function CalendarSidebar({
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
             {initials(name, email)}
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">
               {name || "Signed in"}
             </p>
             <p className="truncate text-xs text-muted-foreground">{email}</p>
           </div>
+          <form action={signOutAction}>
+            <Button
+              type="submit"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 text-muted-foreground"
+              aria-label="Sign out"
+            >
+              <LogOut className="size-4" />
+            </Button>
+          </form>
         </div>
 
         {/* Legend: what the two colors mean */}
@@ -63,11 +84,13 @@ export function CalendarSidebar({
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="p-5">
-        <p className="text-[0.625rem] leading-relaxed text-muted-foreground">
-          {timeZone ? `Times shown in ${timeZone}. ` : ""}Pick a slot to book —
-          coming soon.
-        </p>
+      <SidebarFooter className="gap-3 p-5">
+        {timeZone ? (
+          <p className="text-[0.625rem] leading-relaxed text-muted-foreground">
+            Times shown in {timeZone}.
+          </p>
+        ) : null}
+        <ThemeSwitch />
       </SidebarFooter>
     </Sidebar>
   );

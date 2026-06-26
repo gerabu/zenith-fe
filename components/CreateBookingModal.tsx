@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 // zod 4 implements the Standard Schema spec; the standard-schema resolver
 // avoids the zod-version typing skew in `@hookform/resolvers/zod`.
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { Plus } from "lucide-react";
+import { AlertCircleIcon, Plus } from "lucide-react";
 
 import { createBooking } from "@/app/bookings/actions";
 import {
@@ -100,6 +100,7 @@ export function CreateBookingModal({
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
           {serverError && (
             <Alert variant="destructive">
+              <AlertCircleIcon />
               <AlertTitle>Couldn&apos;t create booking</AlertTitle>
               <AlertDescription>{serverError}</AlertDescription>
             </Alert>
