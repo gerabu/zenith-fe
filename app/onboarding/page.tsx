@@ -5,7 +5,15 @@ import { SlotGrid } from "./SlotGrid";
 export default function OnboardingSignInPage() {
   async function handleGoogleSignIn() {
     "use server";
-    await signIn("google", { redirectTo: "/onboarding/connect-calendar" });
+    // Request offline access so every session — not just calendar-connected
+    // ones — gets a refresh token the `jwt` callback can use to renew the
+    // Google ID token. `prompt=consent` is required because Google omits the
+    // refresh token on a silent re-consent.
+    await signIn(
+      "google",
+      { redirectTo: "/onboarding/connect-calendar" },
+      { access_type: "offline", prompt: "consent" }
+    );
   }
 
   return (

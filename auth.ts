@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { refreshGoogleIdTokenIfNeeded } from "@/lib/google-token";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
@@ -18,6 +19,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account) {
         // First sign-in: capture Google ID token (not the opaque access token)
         token.idToken = account.id_token;
+
+        // Persist the refresh material so later reads can renew the ID token
+        // before it expires. Keep any existing refresh token if this account
+        // (e.g. a silent re-consent) didn't return one.
+        token.refreshToken = account.refresh_token ?? token.refreshToken;
+        if (account.expires_at) {
+          token.expiresAt = account.expires_at * 1000;
+        }
 
         // Persist identity so the calendar sidebar can render it without
         // another round-trip.
@@ -51,20 +60,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             { headers: authHeader }
           );
         }
+        return token;
       }
-      return token;
+
+      // Subsequent reads: renew the ID token via the refresh token when it is
+      // expired or near expiry.
+      return refreshGoogleIdTokenIfNeeded(token);
     },
 
     async session({ session, token }) {
       session.idToken = token.idToken as string;
       session.user.name = token.name ?? session.user.name;
       session.user.email = token.email ?? session.user.email;
+      // Surface a refresh failure so the app can route the user back to sign-in
+      // instead of issuing backend requests with a dead token.
+      session.error = token.error;
       return session;
     },
 
     authorized({ auth: session, request }) {
       const isCalendar = request.nextUrl.pathname.startsWith("/calendar");
-      if (isCalendar) return !!session?.user;
+      // A session whose token refresh failed is treated as unauthenticated so
+      // the user is bounced back to re-authenticate.
+      if (isCalendar) return !!session?.user && !session.error;
       return true;
     },
   },
