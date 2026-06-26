@@ -39,6 +39,7 @@ function toEventVM(event: AvailabilityEvent, tz: string): CalendarEventVM {
   return {
     title: event.title,
     status: event.status as CalendarEventVM["status"],
+    id: event.id,
     startHour: localHour(start, tz),
     timeLabel: `${localTimeLabel(start, tz)} – ${localTimeLabel(new Date(event.slot.end), tz)}`,
   };

@@ -1,7 +1,23 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+
+import { deleteBooking } from "@/app/bookings/actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useLocalToday } from "@/hooks/use-local-today";
+import { cn } from "@/lib/utils";
 import { useCalendarWeek } from "./CalendarWeekContext";
 import type { CalendarDayVM, CalendarEventVM } from "./types";
 
@@ -120,10 +136,14 @@ function DayColumn({
 
 function EventBlock({ event }: { event: CalendarEventVM }) {
   const isBooked = event.status === "booked";
+  // Only internal bookings that carry an id can be deleted; external (Google)
+  // events and id-less bookings show no delete affordance.
+  const deletable = isBooked && Boolean(event.id);
+
   return (
     <div
       className={cn(
-        "mb-0.5 rounded-md px-2 py-1 text-xs leading-tight shadow-sm",
+        "group relative mb-0.5 rounded-md px-2 py-1 text-xs leading-tight shadow-sm",
         isBooked
           ? "bg-primary text-primary-foreground"
           : "border border-secondary-foreground/10 bg-secondary text-secondary-foreground"
@@ -139,7 +159,58 @@ function EventBlock({ event }: { event: CalendarEventVM }) {
       >
         {event.timeLabel}
       </p>
+      {deletable ? <DeleteEventButton event={event} /> : null}
     </div>
+  );
+}
+
+// Hover-revealed trash control on a booked tile. Deletion is confirmed in an
+// AlertDialog; the request runs in a transition (the confirm button reflects the
+// pending state), and a failure is surfaced as a toast while the tile stays put —
+// revalidation reconciles the grid on success.
+function DeleteEventButton({ event }: { event: CalendarEventVM }) {
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function confirmDelete() {
+    startTransition(async () => {
+      const result = await deleteBooking(event.id!);
+      if (result.success) {
+        setOpen(false);
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger
+        aria-label={`Delete booking ${event.title}`}
+        className="absolute right-1 top-1 inline-flex size-5 items-center justify-center rounded text-primary-foreground/70 opacity-0 transition group-hover:opacity-100 hover:bg-primary-foreground/15 hover:text-primary-foreground focus-visible:opacity-100 focus-visible:outline-none"
+      >
+        <Trash2 className="size-3.5" />
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete booking?</AlertDialogTitle>
+          <AlertDialogDescription>
+            “{event.title}” · {event.timeLabel} will be removed. This can’t be
+            undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={isPending}
+            onClick={confirmDelete}
+          >
+            {isPending ? "Deleting…" : "Delete"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

@@ -10,6 +10,8 @@ export type RenderableStatus = "booked" | "external";
 export interface CalendarEventVM {
   title: string;
   status: RenderableStatus;
+  /** Booking id — present only on `booked` events, enabling deletion. */
+  id?: string;
   /** 0-23, the hour the event starts in, in the viewer's zone. */
   startHour: number;
   /** e.g. "09:00 – 10:30", in the viewer's zone. */

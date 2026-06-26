@@ -19,6 +19,8 @@ export interface AvailabilityEvent {
   status: AvailabilityStatus;
   slot: Slot;
   title: string;
+  /** Booking id — present only on `booked` events, enabling deletion. */
+  id?: string;
 }
 
 /** Request body for `POST /bookings`. Times are ISO 8601 timestamps (UTC). */
