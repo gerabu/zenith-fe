@@ -11,6 +11,7 @@ import type { AvailabilityEvent } from "@/lib/types";
 import { formatDateParam, parseWeekParam, weekDays } from "@/lib/week";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { CreateBookingModal } from "@/components/CreateBookingModal";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { CalendarWeekProvider } from "./CalendarWeekContext";
 import { ConnectCalendarAlert } from "./ConnectCalendarAlert";
@@ -119,7 +120,11 @@ export default async function CalendarPage({
             <h1 className="text-sm font-semibold tracking-tight text-foreground">
               Calendar
             </h1>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <CreateBookingModal
+                calendarConnected={calendarConnected}
+                timeZone={tz}
+              />
               <WeekNav />
             </div>
           </header>

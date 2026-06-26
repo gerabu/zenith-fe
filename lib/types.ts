@@ -20,3 +20,25 @@ export interface AvailabilityEvent {
   slot: Slot;
   title: string;
 }
+
+/** Request body for `POST /bookings`. Times are ISO 8601 timestamps (UTC). */
+export interface BookingInput {
+  title: string;
+  /** ISO 8601 timestamp (UTC). */
+  startTime: string;
+  /** ISO 8601 timestamp (UTC). */
+  endTime: string;
+}
+
+/** A booking as returned by the backend. */
+export interface Booking {
+  id: string;
+  userId: string;
+  title: string;
+  /** ISO 8601 timestamp (UTC). */
+  startTime: string;
+  /** ISO 8601 timestamp (UTC). */
+  endTime: string;
+  /** ISO 8601 timestamp (UTC). */
+  createdAt: string;
+}

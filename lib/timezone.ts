@@ -67,3 +67,34 @@ export function localTimeLabel(instant: Date, tz: string): string {
   const { hour, minute } = civilParts(instant, tz);
   return `${pad2(hour)}:${pad2(minute)}`;
 }
+
+/**
+ * Inverse of `civilParts`: turn a zoneless wall-clock value (`YYYY-MM-DDTHH:MM`,
+ * as produced by a `datetime-local` input) interpreted *in `tz`* into an ISO
+ * 8601 UTC timestamp. Conversion must happen here, with the viewer's zone — not
+ * in a server action, which would reinterpret the same string in the server's
+ * zone and shift the booking.
+ *
+ * One Intl round-trip recovers the zone offset at that instant, so it is
+ * DST-correct except within the ~1h fold of a DST transition (an accepted MVP
+ * edge). Throws `RangeError` on a malformed value.
+ */
+export function zonedWallTimeToISO(wallClock: string, tz: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(wallClock);
+  if (!m) throw new RangeError(`Invalid wall-clock value: ${wallClock}`);
+  const [year, month, day, hour, minute] = m.slice(1).map(Number);
+
+  // Treat the wall-clock parts as if they were UTC, then measure how far that
+  // instant's local time in `tz` drifts from the parts we wanted and undo it.
+  const naive = Date.UTC(year, month - 1, day, hour, minute);
+  const shown = civilParts(new Date(naive), tz);
+  const shownMs = Date.UTC(
+    shown.year,
+    shown.month - 1,
+    shown.day,
+    shown.hour,
+    shown.minute,
+  );
+  const offset = shownMs - naive;
+  return new Date(naive - offset).toISOString();
+}
